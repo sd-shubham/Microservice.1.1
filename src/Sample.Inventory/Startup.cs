@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Polly;
 using Polly.Timeout;
 using Sample.Common.Service.DI;
+using Sample.Common.Service.Settings;
 using Sample.Inventory.Client;
 using Sample.Inventory.Entity;
 using Sample.Inventory.Mapper;
@@ -26,8 +27,11 @@ namespace Sample.Inventory
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var serviceSettings = Configuration.GetSection(nameof(ServiceSettings)).Get<ServiceSettings>();
             services.AddMongoDb()
-            .AddRepository<InventoryItem>("InventoryItems");
+            .AddRepository<InventoryItem>("InventoryItems")
+            .AddRepository<CatalogItem>("CatalogItems")
+            .AddMassTransitAndRabbitMQ(Configuration, serviceSettings.ServiceName);
             services.AddAutoMapper(typeof(MapperConfig));
             services.AddHttpClient<CatalogClient>(client =>
             {
